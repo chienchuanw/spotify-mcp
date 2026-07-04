@@ -3,10 +3,12 @@
 MCP project to connect Claude with Spotify. Built on top of [spotipy-dev's API](https://github.com/spotipy-dev/spotipy/tree/2.24.0).
 
 ## Features
-- Start, pause, and skip playback
+- Start, pause, skip, go to previous, seek, and set volume
 - Search for tracks/albums/artists/playlists
 - Get info about a track/album/artist/playlist
 - Manage the Spotify queue
+- Manage your library (list/save/remove liked tracks)
+- Manage playlists (list, create, add/remove tracks)
 
 ## Demo
 
@@ -32,7 +34,7 @@ This project is not yet set up for ephemeral environments (e.g. `uvx` usage).
 Run this project locally by cloning this repo
 
 ```bash
-git clone https://github.com/varunneal/spotify-mcp.git
+git clone https://github.com/chienchuanw/spotify-mcp.git
 ```
 
 Add this tool as a mcp server.
@@ -59,6 +61,20 @@ On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
     }
   ```
 
+### First-time authorization
+
+Because the MCP server communicates over stdio, it cannot run the interactive
+OAuth flow itself. Authorize once with the bundled CLI, which opens your browser
+and captures the redirect on a local server:
+
+```bash
+uv --directory /path/to/spotify_mcp run spotify-mcp-auth
+```
+
+This caches an access/refresh token. The MCP server then reads that cached token
+and refreshes it automatically. Re-run `spotify-mcp-auth` only if you revoke
+access or change scopes.
+
 ### Troubleshooting
 Please open an issue if you can't get this MCP working. Here are some tips:
 1. Make sure `uv` is updated. I recommend version `>=0.54`.
@@ -83,8 +99,6 @@ Upon launching, the Inspector will display a URL that you can access in your bro
 
 Unfortunately, a bunch of cool features have [now been deprecated](https://techcrunch.com/2024/11/27/spotify-cuts-developer-access-to-several-of-its-recommendation-features/) 
 from the Spotify API. Most new features will be relatively minor or for the health of the project:
-- tests.
-- adding API support for managing playlists.
 - adding API support for paginated search results/playlists/albums.
 
 PRs appreciated! 
