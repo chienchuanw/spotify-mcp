@@ -31,3 +31,4 @@ spotify-mcp = { workspace = true }
 
 [project.scripts]
 spotify-mcp = "spotify_mcp:main"
+spotify-mcp-auth = "spotify_mcp:auth_main"

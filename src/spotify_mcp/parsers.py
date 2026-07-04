@@ -1,9 +1,6 @@
-import functools
 from collections import defaultdict
-from typing import Optional, Dict, Callable, TypeVar
+from typing import Optional, Dict
 from urllib.parse import quote
-
-T = TypeVar('T')
 
 
 def parse_track(track_item: dict, detailed: bool = False) -> Optional[dict]:
@@ -151,19 +148,3 @@ def build_search_query(base_query: str,
         filters.append("tag:new")
     query_parts = [base_query] + filters
     return quote(" ".join(query_parts))
-
-
-# --- transitional: consumed by the legacy spotify_api.Client until Task 6 removes
-# that module. The permanent home of this decorator is client.py (Task 3). ---
-def validate(func: Callable[..., T]) -> Callable[..., T]:
-    """Ensure auth is fresh and a device is available before a Spotify call."""
-
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        if not self.auth_ok():
-            self.auth_refresh()
-        if not self.is_active_device():
-            kwargs['device'] = self._get_candidate_device()
-        return func(self, *args, **kwargs)
-
-    return wrapper
