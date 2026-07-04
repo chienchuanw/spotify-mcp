@@ -1,10 +1,12 @@
-from . import server
 import asyncio
 
+from . import server
+from .auth import auth_main
+
+
 def main():
-    """Main entry point for the package."""
+    """Main entry point for the MCP server."""
     asyncio.run(server.main())
 
-# Optionally expose other important items at package level
-__all__ = ['main', 'server']
 
+__all__ = ['main', 'auth_main', 'server']
