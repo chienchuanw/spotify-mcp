@@ -10,6 +10,21 @@ MCP project to connect Claude with Spotify. Built on top of [spotipy-dev's API](
 - Manage your library (list/save/remove liked tracks)
 - Manage playlists (list, create, add/remove tracks, delete)
 
+## Available tools
+
+The server exposes six domain-grouped tools. Most take an `action` argument.
+
+| Tool | Actions | Notes |
+|------|---------|-------|
+| `SpotifyPlayback` | `get`, `start`, `pause`, `skip`, `previous`, `seek`, `volume` | `start` plays a `spotify_uri` or resumes; `seek` needs `position_ms`; `volume` needs `volume_percent` (0–100). Requires an active device + Premium. |
+| `SpotifyQueue` | `add`, `get` | `add` needs `track_id`. |
+| `SpotifySearch` | — | `query` (required), `qtype` (track/album/artist/playlist or comma-separated), `limit`. |
+| `SpotifyGetInfo` | — | `item_uri` (required). Artist → albums + top tracks; album/playlist → tracks. |
+| `SpotifyLibrary` | `get_liked`, `save`, `remove` | `save`/`remove` need `track_ids`. |
+| `SpotifyPlaylist` | `list`, `create`, `add_tracks`, `remove_tracks`, `delete` | `create` needs `name`; track ops need `playlist_id` + `track_ids`; `delete` unfollows the playlist (Spotify has no hard delete). |
+
+Playback/queue actions target the active Spotify device and require Premium. Search, get-info, library, and playlist management work without an open device.
+
 ## Demo
 
 Make sure to turn on audio
@@ -102,6 +117,38 @@ from the Spotify API. Most new features will be relatively minor or for the heal
 - adding API support for paginated search results/playlists/albums.
 
 PRs appreciated! 
+
+## Architecture
+
+The package is organized into focused, single-responsibility modules:
+
+```
+src/spotify_mcp/
+  __init__.py   entry points: main() (server) and auth_main() (auth CLI)
+  server.py     MCP wiring — list_tools / call_tool dispatch to the registry
+  tools.py      tool schemas (Pydantic) + per-domain handlers + registry
+  client.py     SpotifyClient facade over spotipy + the @validate decorator
+  parsers.py    pure functions that narrow Spotify's verbose JSON
+  auth.py       OAuth config, SCOPES, lazy get_client() factory, auth CLI
+  errors.py     exception -> user-facing message formatting
+```
+
+Key design points:
+
+- **Lazy auth** — the Spotify client is built on first use via `get_client()`, never at import time, so the server starts without credentials and only touches Spotify when a tool is called.
+- **`@validate`** — decorates playback/queue methods to refresh the token if expired and inject a candidate device when none is active. Catalog/library/playlist calls are intentionally undecorated (they need no device).
+- **Layered boundaries** — `server` knows nothing of Spotify; `tools` handlers know nothing of the MCP session; `client` knows nothing of MCP types. Each layer is unit-testable in isolation.
+
+## Development
+
+Install dependencies (including the `dev` group) and run the test suite:
+
+```bash
+uv sync
+uv run pytest
+```
+
+Tests mock `spotipy` and never touch the real Spotify API, so no credentials are needed to run them.
 
 ## Deployment
 
