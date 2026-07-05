@@ -61,6 +61,17 @@ def test_search_works_with_no_devices():
     sp.devices.assert_not_called()  # catalog search must not probe devices
 
 
+def test_delete_playlist_unfollows_without_devices():
+    sp = MagicMock()
+    sp.devices.return_value = {'devices': []}
+    client = make_client(sp)
+
+    client.delete_playlist('p1')
+
+    sp.current_user_unfollow_playlist.assert_called_once_with('p1')
+    sp.devices.assert_not_called()  # library-style op, no device probing
+
+
 def test_create_playlist_works_with_no_devices():
     sp = MagicMock()
     sp.devices.return_value = {'devices': []}
