@@ -46,6 +46,21 @@ def test_save_tracks_works_with_no_devices():
     sp.devices.assert_not_called()
 
 
+def test_search_works_with_no_devices():
+    sp = MagicMock()
+    sp.devices.return_value = {'devices': []}  # Spotify closed everywhere
+    sp.current_user.return_value = {'display_name': 'me', 'id': 'uid'}
+    sp.search.return_value = {'tracks': {'items': [
+        {'name': 'One More Time', 'id': 't1', 'artists': [{'name': 'Daft Punk', 'id': 'a1'}]},
+    ]}}
+    client = make_client(sp)
+
+    result = client.search('daft punk', qtype='track', limit=1)
+
+    assert result['tracks'][0]['name'] == 'One More Time'
+    sp.devices.assert_not_called()  # catalog search must not probe devices
+
+
 def test_create_playlist_works_with_no_devices():
     sp = MagicMock()
     sp.devices.return_value = {'devices': []}

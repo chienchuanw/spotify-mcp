@@ -42,8 +42,10 @@ class SpotifyClient:
         self.username = self.sp.current_user()['display_name']
 
     # ----- search / info -----
-    @validate
-    def search(self, query: str, qtype: str = 'track', limit=10, device=None):
+    # Search is a catalog query, not playback: no device gating (an earlier
+    # @validate here made search fail with "No active device" when Spotify was
+    # closed). Token refresh is handled by spotipy's auth_manager per request.
+    def search(self, query: str, qtype: str = 'track', limit=10):
         if self.username is None:
             self.set_username()
         results = self.sp.search(q=query, limit=limit, type=qtype)
