@@ -192,4 +192,4 @@ Deprecated Spotify recommendation endpoints are out of scope. Possible future wo
 
 ## License
 
-{No LICENSE file is currently present in this repository. Add one (for example MIT) to declare how others may use the project.}
+Released under the [MIT License](LICENSE). This project is derived from the original [spotify-mcp](https://github.com/varunneal/spotify-mcp) by Varun Srivastava, also MIT-licensed; the original copyright notice is retained in the `LICENSE` file.
