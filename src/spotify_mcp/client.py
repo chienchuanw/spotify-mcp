@@ -37,8 +37,8 @@ class SpotifyClient:
         self.username = None
 
     # ----- identity -----
-    @validate
-    def set_username(self, device=None):
+    # Profile lookup, not playback: no device gating (see the library note below).
+    def set_username(self):
         self.username = self.sp.current_user()['display_name']
 
     # ----- search / info -----
@@ -118,20 +118,22 @@ class SpotifyClient:
 
     @validate
     def skip_track(self, n=1, device=None):
+        device_id = device.get('id') if device else None
         for _ in range(n):
-            self.sp.next_track()
+            self.sp.next_track(device_id)
 
     @validate
     def previous_track(self, device=None):
-        self.sp.previous_track()
+        self.sp.previous_track(device.get('id') if device else None)
 
     @validate
     def seek_to_position(self, position_ms, device=None):
-        self.sp.seek_track(position_ms=position_ms)
+        self.sp.seek_track(position_ms=position_ms,
+                           device_id=device.get('id') if device else None)
 
     @validate
     def set_volume(self, volume_percent, device=None):
-        self.sp.volume(volume_percent)
+        self.sp.volume(volume_percent, device.get('id') if device else None)
 
     # ----- queue -----
     @validate
@@ -146,29 +148,27 @@ class SpotifyClient:
         return queue_info
 
     # ----- library -----
-    @validate
-    def get_liked_tracks(self, limit=50, device=None) -> list:
+    # These are plain Web API calls, not playback: no device is involved, so they
+    # do NOT use @validate (which would gate on an active device and raise when
+    # Spotify is closed). spotipy's auth_manager refreshes the token per request.
+    def get_liked_tracks(self, limit=50) -> list:
         results = self.sp.current_user_saved_tracks(limit=limit)
         return [parsers.parse_track(item['track']) for item in results['items']]
 
-    @validate
-    def save_tracks(self, track_ids, device=None):
+    def save_tracks(self, track_ids):
         self.sp.current_user_saved_tracks_add(tracks=track_ids)
 
-    @validate
-    def remove_tracks(self, track_ids, device=None):
+    def remove_tracks(self, track_ids):
         self.sp.current_user_saved_tracks_delete(tracks=track_ids)
 
     # ----- playlists -----
-    @validate
-    def get_playlists(self, limit=50, device=None) -> list:
+    def get_playlists(self, limit=50) -> list:
         if self.username is None:
             self.set_username()
         results = self.sp.current_user_playlists(limit=limit)
         return [parsers.parse_playlist(p, self.username) for p in results['items']]
 
-    @validate
-    def create_playlist(self, name, public=False, description='', device=None) -> dict:
+    def create_playlist(self, name, public=False, description='') -> dict:
         if self.username is None:
             self.set_username()
         user_id = self.sp.current_user()['id']
@@ -176,12 +176,10 @@ class SpotifyClient:
             user_id, name, public=public, description=description)
         return parsers.parse_playlist(playlist, self.username)
 
-    @validate
-    def playlist_add_tracks(self, playlist_id, track_ids, device=None):
+    def playlist_add_tracks(self, playlist_id, track_ids):
         self.sp.playlist_add_items(playlist_id, track_ids)
 
-    @validate
-    def playlist_remove_tracks(self, playlist_id, track_ids, device=None):
+    def playlist_remove_tracks(self, playlist_id, track_ids):
         self.sp.playlist_remove_all_occurrences_of_items(playlist_id, track_ids)
 
     # ----- devices / auth -----
