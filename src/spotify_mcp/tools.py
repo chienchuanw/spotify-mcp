@@ -67,8 +67,10 @@ class Playlist(ToolModel):
     - list: the current user's playlists.
     - create: make a new playlist (name required).
     - add_tracks / remove_tracks: modify a playlist's items (playlist_id + track_ids required).
+    - delete: remove a playlist from your library (playlist_id required). Spotify has
+      no hard delete; this unfollows it, which removes owned playlists from your view.
     """
-    action: str = Field(description="'list', 'create', 'add_tracks', or 'remove_tracks'.")
+    action: str = Field(description="'list', 'create', 'add_tracks', 'remove_tracks', or 'delete'.")
     playlist_id: Optional[str] = Field(default=None, description="Playlist ID for add/remove.")
     track_ids: Optional[list[str]] = Field(default=None, description="Track IDs for add/remove.")
     name: Optional[str] = Field(default=None, description="Name for 'create'.")
@@ -198,8 +200,14 @@ def handle_playlist(client, arguments: dict) -> list[types.TextContent]:
                 return _text("playlist_id and track_ids are required for remove_tracks action.")
             client.playlist_remove_tracks(playlist_id, track_ids)
             return _text(f"Removed {len(track_ids)} track(s) from playlist.")
+        case "delete":
+            playlist_id = arguments.get("playlist_id")
+            if not playlist_id:
+                return _text("playlist_id is required for delete action.")
+            client.delete_playlist(playlist_id)
+            return _text("Playlist removed from your library.")
         case _:
-            return _text(f"Unknown playlist action: {action}. Supported: list, create, add_tracks, remove_tracks.")
+            return _text(f"Unknown playlist action: {action}. Supported: list, create, add_tracks, remove_tracks, delete.")
 
 
 TOOL_MODELS = [Playback, Search, Queue, GetInfo, Library, Playlist]

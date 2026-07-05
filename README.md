@@ -8,7 +8,7 @@ MCP project to connect Claude with Spotify. Built on top of [spotipy-dev's API](
 - Get info about a track/album/artist/playlist
 - Manage the Spotify queue
 - Manage your library (list/save/remove liked tracks)
-- Manage playlists (list, create, add/remove tracks)
+- Manage playlists (list, create, add/remove tracks, delete)
 
 ## Demo
 

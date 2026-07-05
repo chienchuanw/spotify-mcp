@@ -81,6 +81,20 @@ def test_playlist_add_tracks_calls_client():
     client.playlist_add_tracks.assert_called_once_with('p1', ['t1', 't2'])
 
 
+def test_playlist_delete_requires_id():
+    client = MagicMock()
+    out = _text(tools.handle_playlist(client, {'action': 'delete'}))
+    assert "playlist_id" in out
+    client.delete_playlist.assert_not_called()
+
+
+def test_playlist_delete_calls_client():
+    client = MagicMock()
+    out = _text(tools.handle_playlist(client, {'action': 'delete', 'playlist_id': 'p1'}))
+    client.delete_playlist.assert_called_once_with('p1')
+    assert "removed" in out.lower()
+
+
 def test_registry_has_all_tools():
     names = {m.as_tool().name for m in tools.TOOL_MODELS}
     assert names == set(tools.HANDLERS.keys())

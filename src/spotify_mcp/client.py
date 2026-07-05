@@ -184,6 +184,11 @@ class SpotifyClient:
     def playlist_remove_tracks(self, playlist_id, track_ids):
         self.sp.playlist_remove_all_occurrences_of_items(playlist_id, track_ids)
 
+    def delete_playlist(self, playlist_id):
+        # Spotify has no hard delete; unfollowing removes the playlist from the
+        # user's library (and, for playlists they own, from their account view).
+        self.sp.current_user_unfollow_playlist(playlist_id)
+
     # ----- devices / auth -----
     def is_track_playing(self) -> bool:
         curr_track = self.get_current_track()
